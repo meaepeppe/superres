@@ -86,17 +86,18 @@ class ImageLogger(Callback):
 
 
 model = Sequential()
-model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same',
+model.add(layers.Conv2D(50, (6, 6), activation='relu', padding='same',
                         input_shape=(config.input_width, config.input_height, 3)))
 model.add(layers.UpSampling2D())
-model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same'))
+model.add(layers.Conv2D(10, (3, 3), activation='relu', padding='same'))
+model.add(layers.Conv2D(10, (3, 3), activation='relu', padding='same'))
 model.add(layers.UpSampling2D())
 model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same'))
 model.add(layers.UpSampling2D())
 model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same'))
 
 # DONT ALTER metrics=[perceptual_distance]
-model.compile(optimizer='adam', loss='mse',
+model.compile(optimizer='adam', loss='mean_absolute_error',
               metrics=[perceptual_distance])
 
 model.fit_generator(image_generator(config.batch_size, train_dir),

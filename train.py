@@ -14,7 +14,7 @@ from wandb.keras import WandbCallback
 run = wandb.init(project='superres')
 config = run.config
 
-config.num_epochs = 50
+config.num_epochs = 5
 config.batch_size = 32
 config.input_height = 32
 config.input_width = 32
@@ -30,8 +30,10 @@ if not os.path.exists("data"):
     subprocess.check_output(
         "mkdir data && curl https://storage.googleapis.com/wandb/flower-enhance.tar.gz | tar xzf - -C data", shell=True)
 
+#Try to change this for training
 config.steps_per_epoch = len(
-    glob.glob(train_dir + "/*-in.jpg")) // config.batch_size
+    glob.glob(train_dir + "/*-in.jpg")) + len(
+    glob.glob(train_dir + "/aug_*")) // config.batch_size
 config.val_steps_per_epoch = len(
     glob.glob(val_dir + "/*-in.jpg")) // config.batch_size
 
@@ -86,10 +88,9 @@ class ImageLogger(Callback):
 
 
 model = Sequential()
-model.add(layers.Conv2D(50, (6, 6), activation='relu', padding='same',
+model.add(layers.Conv2D(20, (3, 3), activation='relu', padding='same',
                         input_shape=(config.input_width, config.input_height, 3)))
 model.add(layers.UpSampling2D())
-model.add(layers.Conv2D(10, (3, 3), activation='relu', padding='same'))
 model.add(layers.Conv2D(10, (3, 3), activation='relu', padding='same'))
 model.add(layers.UpSampling2D())
 model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same'))
@@ -97,7 +98,7 @@ model.add(layers.UpSampling2D())
 model.add(layers.Conv2D(3, (3, 3), activation='relu', padding='same'))
 
 # DONT ALTER metrics=[perceptual_distance]
-model.compile(optimizer='adam', loss='mean_absolute_error',
+model.compile(optimizer='adam', loss='mse',
               metrics=[perceptual_distance])
 
 model.fit_generator(image_generator(config.batch_size, train_dir),
